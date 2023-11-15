@@ -1,5 +1,6 @@
 const users = require("../Models/userSchema")
 require("mongoose")
+const jwt=require("jsonwebtoken")
 
 
 // logic for register to store
@@ -29,23 +30,28 @@ exports.register = async (req, res) => {
 
 }
 
+//logic for loginnn
 
 exports.login = async (req, res) => {
 
-   const { email, password } = req.body
+   const { email,password } = req.body
 
    try {
 
-      const loginUserExist = await users.findOne({ $and: [{ email: email }, { password: password }] })
-      if (loginUserExist) {
-         res.status(200).json(loginUserExist)
+      const existingUser = await users.findOne({email,password})
+      if (existingUser) {
+         const token=jwt.sign({userId:existingUser._id},"supersecretkey12345")
+       
+         res.status(200).json({existingUser,token})
+
+
       } else {
-         res.status(406).json("user does not register")
+         res.status(404).json("Incorrect Eamil / Password")
       }
 
    }
    catch (err) {
-      res.status(200).json(`sorry there is an error ${err}`)
+      res.status(401).json(`Login error Failed  Due to  ${err}`)
    }
 
 }
